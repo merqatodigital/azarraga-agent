@@ -1,0 +1,47 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "azarraga-commercial-agent",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-01-15",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Static SPA (vite build output) served by the same Worker
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+
+  // Durable Object holding all commercial state — no Postgres anywhere
+  "durable_objects": {
+    "bindings": [{ "name": "AzarragaAgent", "class_name": "AzarragaAgent" }]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["AzarragaAgent"]
+    }
+  ],
+
+  // Workers AI — no OpenAI key required
+  "ai": { "binding": "AI" },
+
+  // Authoritative originals live in R2, never in a database
+  "r2_buckets": [
+    { "binding": "DOCUMENTS", "bucket_name": "commercial-documents" }
+  ],
+
+  // Short-lived answer + signed URL cache
+  "kv_namespaces": [
+    { "binding": "COMMERCIAL_CACHE", "id": "REPLACE_WITH_KV_ID" }
+  ],
+
+  "vars": {
+    "OPENROUTER_SITE_URL": "https://azarraga-commercial-agent.workers.dev",
+    "OPENROUTER_MODEL": "nvidia/nemotron-nano-9b-v2:free",
+    "OPENROUTER_VISION_MODEL": "google/gemini-2.0-flash-exp:free",
+    "WHATSAPP_PHONE_ID": "123456789"
+  },
+
+  "observability": { "enabled": true }
+}
